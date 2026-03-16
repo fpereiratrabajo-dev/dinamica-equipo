@@ -785,8 +785,9 @@ function showCard() {
   // Generate QR — use Google Charts API, reliable and no install needed
   const qrDiv = document.getElementById('qr-code');
   qrDiv.innerHTML = '';
+  const baseUrl = window.location.href.split('?')[0];
   new QRCode(qrDiv, {
-    text: window.location.href,
+    text: baseUrl + '?view=mobile',
     width: 90,
     height: 90,
     colorDark: '#2D2D2D',
@@ -980,6 +981,26 @@ function restartDynamic() {
   document.getElementById('qr-code').innerHTML = '';
   startDynamic();
 }
+
+// Auto-detect if participant view
+(function init() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('view') === 'mobile') {
+    // Hide everything except mobile screen and show waiting state
+    document.getElementById('view-toggle').style.display = 'none';
+    document.getElementById('resp-badge').classList.add('hidden');
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    const mob = document.getElementById('screen-mobile');
+    mob.classList.remove('hidden');
+    // Show a waiting message until the presenter starts
+    document.getElementById('mob-emoji').textContent = '👋';
+    document.getElementById('mob-title').textContent = '¡Esperando la dinámica!';
+    document.getElementById('mob-input').style.display = 'none';
+    document.getElementById('mob-send-btn').style.display = 'none';
+    document.querySelector('.respond-timer-bar').style.display = 'none';
+    document.querySelector('.subtopic').textContent = 'El presentador va a lanzar la primera tarjeta en breve...';
+  }
+})();
 </script>
 </body>
 </html>
