@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dinámica de Equipo</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --coral: #FF6B6B;
+    --peach: #FFA07A;
+    --yellow: #FFD166;
+    --mint: #06D6A0;
+    --sky: #74C0FC;
+    --lavender: #C77DFF;
+    --cream: #FFF9F0;
+    --card-bg: #FFFFFF;
+    --text-dark: #2D2D2D;
+    --text-mid: #666;
+    --shadow: 0 8px 32px rgba(0,0,0,0.10);
+    --radius: 24px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background blobs */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.25;
+    pointer-events: none;
+    z-index: 0;
+    animation: blobFloat 8s ease-in-out infinite alternate;
+  }
+  .blob-1 { width: 500px; height: 500px; background: var(--coral); top: -150px; left: -100px; animation-delay: 0s; }
+  .blob-2 { width: 400px; height: 400px; background: var(--yellow); top: 50%; right: -100px; animation-delay: 2s; }
+  .blob-3 { width: 350px; height: 350px; background: var(--mint); bottom: -100px; left: 30%; animation-delay: 4s; }
+  .blob-4 { width: 300px; height: 300px; background: var(--sky); top: 20%; left: 40%; animation-delay: 1s; }
+
+  @keyframes blobFloat {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(30px, 20px) scale(1.05); }
+  }
+
+  /* SCREENS */
+  .screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.97);
+  }
+
+  /* ===== SCREEN: INTRO ===== */
+  #screen-intro .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 56px 64px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    overflow: hidden;
+  }
+  #screen-intro .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--coral), var(--yellow), var(--mint));
+  }
+  #screen-intro h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    color: var(--coral);
+    margin-bottom: 8px;
+  }
+  #screen-intro p {
+    color: var(--text-mid);
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--coral), var(--peach));
+    color: white;
+    border: none;
+    padding: 18px 48px;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(255,107,107,0.35);
+    letter-spacing: 0.3px;
+  }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(255,107,107,0.45); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ===== SCREEN: CARD ===== */
+  #screen-card {
+    flex-direction: column;
+    gap: 24px;
+    padding: 32px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 900px;
+  }
+  .card-counter {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-mid);
+    background: white;
+    padding: 8px 18px;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+
+  /* Timer circle */
+  .timer-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+  }
+  .timer-svg { transform: rotate(-90deg); }
+  .timer-bg { fill: none; stroke: #f0f0f0; stroke-width: 5; }
+  .timer-arc {
+    fill: none;
+    stroke: var(--coral);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-dasharray: 188.5;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.5s;
+  }
+  .timer-num {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+  }
+
+  /* Main topic card */
+  .topic-card {
+    background: white;
+    border-radius: 32px;
+    padding: 56px 64px;
+    max-width: 680px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: cardPop 0.6s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes cardPop {
+    from { transform: scale(0.7) rotate(-4deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .topic-card .accent-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 7px;
+    border-radius: 32px 32px 0 0;
+  }
+  .topic-emoji {
+    font-size: 5rem;
+    margin-bottom: 16px;
+    display: block;
+    animation: emojiWiggle 0.8s ease 0.3s both;
+  }
+  @keyframes emojiWiggle {
+    0% { transform: scale(0) rotate(-20deg); }
+    60% { transform: scale(1.2) rotate(8deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .topic-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.8rem;
+    color: var(--text-dark);
+    line-height: 1.2;
+  }
+  .topic-hint {
+    margin-top: 12px;
+    color: var(--text-mid);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  /* QR section */
+  .qr-panel {
+    background: white;
+    border-radius: 20px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow);
+    max-width: 480px;
+    width: 100%;
+    animation: slideUp 0.5s ease 0.2s both;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  #qr-code { flex-shrink: 0; }
+  #qr-code img, #qr-code canvas { border-radius: 8px; }
+  .qr-text h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+  }
+  .qr-text p { color: var(--text-mid); font-size: 0.9rem; line-height: 1.4; }
+  .qr-url {
+    display: inline-block;
+    margin-top: 6px;
+    background: var(--cream);
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--coral);
+  }
+
+  /* ===== SCREEN: RESPONDING (mobile view simulation) ===== */
+  #screen-respond {
+    background: linear-gradient(135deg, #fff5f0, #fff0f5);
+    flex-direction: column;
+    padding: 24px;
+    gap: 16px;
+  }
+  .respond-card {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .respond-card h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--text-dark);
+    margin: 12px 0 8px;
+  }
+  .respond-card p { color: var(--text-mid); font-size: 0.95rem; margin-bottom: 20px; }
+  .respond-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #f0f0f0;
+    border-radius: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+    resize: none;
+  }
+  .respond-input:focus { border-color: var(--coral); }
+  .respond-timer-bar {
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .respond-timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mint), var(--yellow));
+    border-radius: 99px;
+    transition: width 1s linear;
+  }
+
+  /* ===== SCREEN: RESULTS ===== */
+  #screen-results {
+    flex-direction: column;
+    padding: 32px;
+    gap: 20px;
+  }
+  .results-header {
+    text-align: center;
+    animation: fadeDown 0.5s ease both;
+  }
+  @keyframes fadeDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .results-header h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--text-dark);
+  }
+  .results-header .topic-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 6px;
+    color: white;
+  }
+
+  /* Word cloud */
+  .wordcloud-wrap {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    max-width: 860px;
+    width: 100%;
+    min-height: 260px;
+    padding: 36px 40px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    animation: cardPop 0.5s ease both;
+  }
+  .word-tag {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 99px;
+    font-weight: 700;
+    cursor: default;
+    transition: transform 0.2s;
+    white-space: nowrap;
+    animation: wordPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .word-tag:hover { transform: scale(1.08) rotate(-2deg); }
+  @keyframes wordPop {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* Discussion timer */
+  .discussion-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-radius: 20px;
+    padding: 20px 32px;
+    max-width: 860px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .disc-timer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .disc-timer-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.8rem;
+    color: var(--coral);
+    min-width: 80px;
+  }
+  .disc-timer-label { color: var(--text-mid); font-weight: 700; font-size: 0.9rem; line-height: 1.3; }
+  .disc-progress {
+    flex: 1;
+    height: 10px;
+    background: #f0f0f0;
+    border-radius: 99px;
+    overflow: hidden;
+    min-width: 150px;
+  }
+  .disc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--coral), var(--yellow));
+    border-radius: 99px;
+    transition: width 1s linear;
+  }
+  .btn-next {
+    background: linear-gradient(135deg, var(--mint), #04b889);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(6,214,160,0.35);
+    white-space: nowrap;
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6,214,160,0.45); }
+
+  /* ===== SCREEN: FINISHED ===== */
+  #screen-finished .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 64px 72px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    max-width: 560px;
+    width: 90%;
+    position: relative;
+    overflow: hidden;
+  }
+  #screen-finished h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    color: var(--coral);
+    margin: 16px 0 12px;
+  }
+  #screen-finished p {
+    color: var(--text-mid);
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  .confetti-emoji {
+    font-size: 4rem;
+    animation: spin 1s ease both;
+  }
+  @keyframes spin {
+    from { transform: rotate(-180deg) scale(0); opacity: 0; }
+    to { transform: rotate(0deg) scale(1); opacity: 1; }
+  }
+  .btn-restart {
+    margin-top: 32px;
+    background: linear-gradient(135deg, var(--yellow), var(--peach));
+    color: var(--text-dark);
+    border: none;
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 16px rgba(255,209,102,0.4);
+  }
+  .btn-restart:hover { transform: translateY(-2px); }
+
+  /* Response count badge */
+  .resp-count {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    background: white;
+    border-radius: 20px;
+    padding: 10px 20px;
+    box-shadow: var(--shadow);
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.3s;
+  }
+  .resp-count.hidden { opacity: 0; pointer-events: none; }
+  .resp-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--mint); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.6; } }
+
+  /* ===== MOBILE FORM SCREEN ===== */
+  #screen-mobile {
+    flex-direction: column;
+    padding: 24px;
+    background: linear-gradient(160deg, #fff5f0 0%, #f0f9ff 100%);
+  }
+  .mobile-card {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow);
+  }
+  .mobile-card .app-logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: var(--coral);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mobile-card h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .mobile-card .subtopic {
+    color: var(--text-mid);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+  .mobile-send-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--coral), var(--peach));
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin-top: 8px;
+  }
+  .mobile-send-btn:hover { transform: scale(1.02); }
+  .mobile-send-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+  .sent-msg {
+    text-align: center;
+    padding: 16px;
+    font-weight: 700;
+    color: var(--mint);
+    font-size: 1.1rem;
+    display: none;
+  }
+
+  /* View toggle */
+  .view-toggle {
+    position: fixed;
+    top: 20px;
+    left: 24px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(12px);
+    border-radius: 99px;
+    padding: 8px;
+    display: flex;
+    gap: 4px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    z-index: 10;
+  }
+  .vt-btn {
+    padding: 8px 18px;
+    border-radius: 99px;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--text-mid);
+  }
+  .vt-btn.active {
+    background: var(--coral);
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+<div class="blob blob-4"></div>
+
+<!-- Response count badge -->
+<div class="resp-count hidden" id="resp-badge">
+  <div class="resp-dot"></div>
+  <span id="resp-count-num">0</span> respuestas
+</div>
+
+<!-- View toggle -->
+<div class="view-toggle" id="view-toggle" style="display:none">
+  <button class="vt-btn active" onclick="switchView('presenter')">🖥️ Presentador</button>
+  <button class="vt-btn" onclick="switchView('mobile')">📱 Vista Participante</button>
+</div>
+
+<!-- ===== SCREEN: INTRO ===== -->
+<div class="screen" id="screen-intro">
+  <div class="card">
+    <div style="font-size:3rem;margin-bottom:12px">👋</div>
+    <h1>¡Conociéndonos!</h1>
+    <p>Una dinámica para conocernos mejor.<br>Escaneá el QR y participá en cada ronda.</p>
+    <button class="btn-primary" onclick="startDynamic()">Comenzar dinámica ✨</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: CARD (presenter) ===== -->
+<div class="screen hidden" id="screen-card">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:900px;">
+    <div class="card-header">
+      <div class="card-counter" id="card-counter">Tarjeta 1 de 12</div>
+      <div class="timer-wrap">
+        <svg class="timer-svg" width="72" height="72" viewBox="0 0 72 72">
+          <circle class="timer-bg" cx="36" cy="36" r="30"/>
+          <circle class="timer-arc" id="timer-arc" cx="36" cy="36" r="30"/>
+        </svg>
+        <div class="timer-num" id="timer-num">15</div>
+      </div>
+    </div>
+
+    <div class="topic-card" id="topic-card">
+      <div class="accent-bar" id="accent-bar"></div>
+      <span class="topic-emoji" id="topic-emoji">🍦</span>
+      <div class="topic-title" id="topic-title">Sabor de helado favorito</div>
+      <div class="topic-hint">Respondé desde tu celular 📱</div>
+    </div>
+
+    <div class="qr-panel">
+      <div id="qr-code"></div>
+      <div class="qr-text">
+        <h3>Escaneá para responder</h3>
+        <p>Abrí la cámara y apuntá al código QR</p>
+        <span class="qr-url" id="qr-url-text">participar.app/sala/abc123</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: RESULTS ===== -->
+<div class="screen hidden" id="screen-results">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:900px;">
+    <div class="results-header">
+      <h2>¡Resultados! <span id="res-emoji">🍦</span></h2>
+      <span class="topic-badge" id="res-badge">Sabor de helado favorito</span>
+    </div>
+
+    <div class="wordcloud-wrap" id="wordcloud"></div>
+
+    <div class="discussion-panel">
+      <div class="disc-timer">
+        <div class="disc-timer-num" id="disc-timer-num">1:00</div>
+        <div class="disc-timer-label">para charlar<br>sobre esto 💬</div>
+      </div>
+      <div class="disc-progress">
+        <div class="disc-progress-fill" id="disc-progress-fill" style="width:100%"></div>
+      </div>
+      <button class="btn-next" id="btn-next" onclick="nextCard()">Siguiente tarjeta →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: MOBILE (participant view) ===== -->
+<div class="screen hidden" id="screen-mobile">
+  <div class="mobile-card">
+    <div class="app-logo">🌟 Dinámica de Equipo</div>
+    <span style="font-size:2.5rem" id="mob-emoji">🍦</span>
+    <h2 id="mob-title">Sabor de helado favorito</h2>
+    <p class="subtopic">Escribí tu respuesta (max. 3 palabras)</p>
+    <div class="respond-timer-bar">
+      <div class="respond-timer-fill" id="mob-timer-fill" style="width:100%"></div>
+    </div>
+    <textarea class="respond-input" id="mob-input" rows="2" placeholder="Tu respuesta..." maxlength="60"></textarea>
+    <button class="mobile-send-btn" id="mob-send-btn" onclick="submitMobileResponse()">Enviar respuesta 🚀</button>
+    <div class="sent-msg" id="sent-msg">✅ ¡Respuesta enviada! Mirá la pantalla...</div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: FINISHED ===== -->
+<div class="screen hidden" id="screen-finished">
+  <div class="card">
+    <div class="confetti-emoji">🎉</div>
+    <h1>¡Genial equipo!</h1>
+    <p>Ya nos conocemos un poquito más.<br>¡Gracias a todos por participar!</p>
+    <button class="btn-restart" onclick="restartDynamic()">Repetir dinámica 🔄</button>
+  </div>
+</div>
+
+<script>
+// ---- Minimal QR Code generator (pure JS, no deps) ----
+// Based on a Reed-Solomon + QR matrix approach for short URLs
+// For simplicity, we embed a fixed QR pattern that encodes the URL visually
+// using a well-known micro QR approach via data URI generation
+
+function drawQR(canvas, text, size) {
+  // Use a self-contained QR encoder
+  const qr = createQR(text);
+  const ctx = canvas.getContext('2d');
+  const modules = qr.modules;
+  const n = modules.length;
+  const cell = size / (n + 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#2D2D2D';
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (modules[r][c]) {
+        ctx.fillRect((c + 1) * cell, (r + 1) * cell, cell, cell);
+      }
+    }
+  }
+}
+
+// Minimal QR Code generator - supports alphanumeric/byte mode, version 1-10
+function createQR(text) {
+  // We'll use a reliable embedded approach: encode as URL using QR byte mode
+  const data = encodeURIComponent(text);
+  // Use a simple but complete QR implementation
+  return QRCodeGen(text);
+}
+
+/* QRCodeGen: compact but complete QR generator */
+function QRCodeGen(str) {
+  const PAD0 = 0xEC, PAD1 = 0x11;
+  function getMode(s) { return 4; } // byte mode
+  function getCharCount(s) { return s.length; }
+
+  function strToBytes(s) {
+    const bytes = [];
+    for (let i = 0; i < s.length; i++) {
+      const c = s.charCodeAt(i);
+      if (c < 128) bytes.push(c);
+      else if (c < 2048) { bytes.push(0xC0|(c>>6)); bytes.push(0x80|(c&63)); }
+      else { bytes.push(0xE0|(c>>12)); bytes.push(0x80|((c>>6)&63)); bytes.push(0x80|(c&63)); }
+    }
+    return bytes;
+  }
+
+  const bytes = strToBytes(str);
+  const len = bytes.length;
+
+  // Pick version (1–10) for ECC level M
+  const CAP_M = [0,16,28,44,64,86,108,124,154,182,216];
+  let version = 1;
+  while (version < CAP_M.length && CAP_M[version] < len + 3) version++;
+  if (version >= CAP_M.length) version = 10;
+
+  const EC_BLOCKS = [
+    null,
+    {ecw:10,bl:[[1,19]]}, {ecw:16,bl:[[1,34]]}, {ecw:26,bl:[[1,55]]},
+    {ecw:18,bl:[[2,25]]}, {ecw:24,bl:[[2,33]]}, {ecw:16,bl:[[4,27]]},
+    {ecw:18,bl:[[4,31]]}, {ecw:22,bl:[[2,38],[2,39]]} ,
+    {ecw:22,bl:[[3,36],[2,37]]}, {ecw:26,bl:[[4,43],[1,44]]}
+  ];
+  const ecInfo = EC_BLOCKS[version];
+  const totalWords = ecInfo.bl.reduce((s,b)=>s+b[0]*b[1],0);
+  const dataWords = totalWords - ecInfo.bl.reduce((s,b)=>s+b[0]*ecInfo.ecw,0);
+
+  // Build data bits
+  const bits = [];
+  function addBits(val, n) { for(let i=n-1;i>=0;i--) bits.push((val>>i)&1); }
+  addBits(4, 4); // byte mode
+  addBits(len, version < 10 ? 8 : 16);
+  bytes.forEach(b => addBits(b, 8));
+  addBits(0, Math.min(4, dataWords*8 - bits.length));
+  while (bits.length % 8) bits.push(0);
+  const dataBytes = [];
+  for(let i=0;i<bits.length;i+=8) {
+    let v=0; for(let j=0;j<8;j++) v=(v<<1)|bits[i+j];
+    dataBytes.push(v);
+  }
+  let pi=0;
+  while(dataBytes.length < dataWords) dataBytes.push(pi++%2===0?PAD0:PAD1);
+
+  // Reed-Solomon
+  function gfMul(a,b){ if(!a||!b)return 0; return GF_EXP[(GF_LOG[a]+GF_LOG[b])%255]; }
+  const GF_EXP=new Uint8Array(512), GF_LOG=new Uint8Array(256);
+  let x=1;
+  for(let i=0;i<255;i++){ GF_EXP[i]=x; GF_LOG[x]=i; x=(x<<1)^(x>=128?0x11D:0); }
+  for(let i=255;i<512;i++) GF_EXP[i]=GF_EXP[i-255];
+
+  function rsGen(n) {
+    let g=[1];
+    for(let i=0;i<n;i++){
+      const t=[1,GF_EXP[i]];
+      const r=new Array(g.length+1).fill(0);
+      for(let a=0;a<g.length;a++) for(let b=0;b<t.length;b++) r[a+b]^=gfMul(g[a],t[b]);
+      g=r;
+    }
+    return g;
+  }
+
+  function rsEncode(data, n) {
+    const gen = rsGen(n);
+    const msg = [...data, ...new Array(n).fill(0)];
+    for(let i=0;i<data.length;i++){
+      const c=msg[i];
+      if(c) for(let j=0;j<gen.length;j++) msg[i+j]^=gfMul(gen[j],c);
+    }
+    return msg.slice(data.length);
+  }
+
+  // Interleave blocks
+  const blocks=[], ecBlocks=[];
+  let pos=0;
+  ecInfo.bl.forEach(([cnt, wds])=>{
+    for(let i=0;i<cnt;i++){
+      const blk=dataBytes.slice(pos,pos+wds); pos+=wds;
+      blocks.push(blk);
+      ecBlocks.push(rsEncode(blk,ecInfo.ecw));
+    }
+  });
+  const finalBytes=[];
+  const maxLen=Math.max(...blocks.map(b=>b.length));
+  for(let i=0;i<maxLen;i++) blocks.forEach(b=>{ if(i<b.length) finalBytes.push(b[i]); });
+  for(let i=0;i<ecInfo.ecw;i++) ecBlocks.forEach(b=>finalBytes.push(b[i]));
+
+  // Final bit stream
+  const finalBits=[];
+  finalBytes.forEach(b=>{ for(let i=7;i>=0;i--) finalBits.push((b>>i)&1); });
+  // Remainder bits
+  const REM=[0,0,7,7,7,7,7,0,0,0,0,0,0,0];
+  for(let i=0;i<(REM[version]||0);i++) finalBits.push(0);
+
+  // Build matrix
+  const size = version*4+17;
+  const mat = Array.from({length:size},()=>new Array(size).fill(null));
+  const res = Array.from({length:size},()=>new Array(size).fill(false));
+
+  function setFn(r,c,v){ mat[r][c]=v; res[r][c]=true; }
+
+  // Finder patterns
+  function finder(row,col){
+    for(let r=-1;r<=7;r++) for(let c=-1;c<=7;c++){
+      if(r+row<0||r+row>=size||c+col<0||c+col>=size) continue;
+      const v=(r===0||r===6||c===0||c===6||(r>=2&&r<=4&&c>=2&&c<=4))&&!(r<0||r>6||c<0||c>6);
+      setFn(r+row,c+col,r>=0&&r<=6&&c>=0&&c<=6?v:false);
+    }
+  }
+  finder(0,0); finder(0,size-7); finder(size-7,0);
+
+  // Separators already set by finder with border
+
+  // Timing
+  for(let i=8;i<size-8;i++){
+    if(!res[6][i]){setFn(6,i,i%2===0);setFn(i,6,i%2===0);}
+  }
+
+  // Dark module
+  setFn(size-8,8,true);
+
+  // Format info placeholders
+  for(let i=0;i<9;i++){ if(!res[8][i]){setFn(8,i,false);} if(!res[i][8]){setFn(i,8,false);} }
+  for(let i=0;i<8;i++){ setFn(8,size-1-i,false); setFn(size-1-i,8,false); }
+
+  // Alignment patterns (version >= 2)
+  const ALN_TABLE = [
+    [],[],[6,18],[6,22],[6,26],[6,30],[6,34],
+    [6,22,38],[6,24,42],[6,28,46],[6,32,50]
+  ];
+  if(version>=2){
+    const aln=ALN_TABLE[version];
+    for(const ar of aln) for(const ac of aln){
+      if(res[ar][ac]) continue;
+      for(let r=-2;r<=2;r++) for(let c=-2;c<=2;c++){
+        setFn(ar+r,ac+c,(Math.abs(r)===2||Math.abs(c)===2||r===0&&c===0));
+      }
+    }
+  }
+
+  // Place data bits
+  let bi=0;
+  let up=true;
+  for(let col=size-1;col>=1;col-=2){
+    if(col===6) col--;
+    for(let ri=0;ri<size;ri++){
+      const row=up?size-1-ri:ri;
+      for(let c2=0;c2<2;c2++){
+        const cc=col-c2;
+        if(!res[row][cc]){
+          mat[row][cc]=bi<finalBits.length?finalBits[bi++]===1:false;
+        }
+      }
+    }
+    up=!up;
+  }
+
+  // Masking - use mask 0 (simple checkerboard)
+  const MASK_FN = (r,c)=>(r+c)%2===0;
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++){
+    if(!res[r][c] && MASK_FN(r,c)) mat[r][c]=!mat[r][c];
+  }
+
+  // Format string for ECC=M(01), mask=0(000): 101010000010010
+  const FMT='101010000010010';
+  const fmt=[...FMT].map(x=>x==='1');
+  for(let i=0;i<6;i++){ mat[8][i]=fmt[i]; mat[i][8]=fmt[i]; }
+  mat[8][7]=fmt[6]; mat[7][8]=fmt[6];
+  mat[8][8]=fmt[7]; mat[8][size-8]=fmt[8];
+  for(let i=0;i<7;i++){ mat[size-7+i][8]=fmt[8+i]; mat[8][size-7+i]=fmt[8+i]; }
+
+  return { modules: mat };
+}
+
+const TOPICS = [
+  { emoji: '🍦', title: 'Sabor de helado favorito', color: '#FFD166', hint: 'chocolate, vainilla, dulce de leche...' },
+  { emoji: '🎵', title: 'Estilo musical favorito', color: '#FF6B9D', hint: 'rock, pop, cumbia, jazz...' },
+  { emoji: '👨‍👩‍👧', title: 'Cantidad de hijos / hermanos', color: '#74C0FC', hint: 'solo hijo, 1 hermano, 3 hermanos...' },
+  { emoji: '☀️', title: 'Team Verano / Invierno', color: '#FF9F43', hint: 'verano, invierno, los dos...' },
+  { emoji: '📱', title: 'App favorita', color: '#A29BFE', hint: 'instagram, spotify, maps...' },
+  { emoji: '⚽', title: 'Deporte favorito', color: '#55EFC4', hint: 'fútbol, tenis, natación...' },
+  { emoji: '🏝️', title: 'Playa o Montaña', color: '#00CEC9', hint: 'playa, montaña, los dos...' },
+  { emoji: '🍕', title: 'Comida favorita', color: '#FFA07A', hint: 'pizza, asado, sushi...' },
+  { emoji: '🎨', title: 'Hobbies y Arte', color: '#FD79A8', hint: 'leer, pintar, cocinar...' },
+  { emoji: '📺', title: 'Serie favorita', color: '#6C5CE7', hint: 'breaking bad, friends, squid game...' },
+  { emoji: '🎂', title: 'Edad / Mes / Signo', color: '#FDCB6E', hint: '29, marzo, aries...' },
+  { emoji: '✨', title: 'Valor que más admirás', color: '#00B894', hint: 'honestidad, humor, empatía...' },
+];
+
+// Pre-generated response pools for simulation
+const RESPONSE_POOLS = {
+  0: ['chocolate','dulce de leche','vainilla','menta granizada','frutilla','dulce de leche','chocolate','crema americana','tramontana','chocolate','vainilla','dulce de leche'],
+  1: ['rock','cumbia','pop','reggaeton','jazz','rock','indie','folklore','pop','trap','cumbia','rock'],
+  2: ['2 hermanos','solo','1 hermano','3 hermanos','2 hermanos','1 hermano','4 hermanos','sin hermanos','solo','2 hermanos','1 hijo','1 hermano'],
+  3: ['verano','invierno','verano','los dos','verano','invierno','verano','invierno','los dos','verano','verano','invierno'],
+  4: ['spotify','instagram','maps','whatsapp','tiktok','spotify','youtube','instagram','notion','spotify','duolingo','instagram'],
+  5: ['fútbol','tenis','natación','running','básquet','fútbol','ciclismo','fútbol','padel','tenis','fútbol','running'],
+  6: ['playa','montaña','playa','los dos','playa','montaña','playa','los dos','playa','montaña','playa','los dos'],
+  7: ['pizza','asado','sushi','pasta','empanadas','pizza','asado','ramen','pizza','milanesa','asado','pizza'],
+  8: ['leer','gaming','cocinar','pintar','viajar','música','fútbol','senderismo','fotografía','cocinar','dibujar','yoga'],
+  9: ['breaking bad','friends','the office','squid game','narcos','game of thrones','black mirror','stranger things','the office','peaky blinders','breaking bad','friends'],
+  10: ['28 marzo aries','32 julio leo','25 enero capricornio','40 mayo tauro','29 agosto virgo','35 diciembre sagitario','27 junio cáncer','31 octubre escorpio','36 febrero acuario','24 septiembre libra','42 noviembre sagitario','30 abril tauro'],
+  11: ['honestidad','humor','empatía','lealtad','creatividad','honestidad','perseverancia','empatía','respeto','humor','amabilidad','honestidad'],
+};
+
+let shuffledTopics = [];
+let currentIndex = 0;
+let responseCount = 0;
+let cardTimer = null;
+let discTimer = null;
+let timerSeconds = 15;
+let discSeconds = 60;
+let currentView = 'presenter';
+let simulatedResponses = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function startDynamic() {
+  shuffledTopics = shuffle(TOPICS.map((t, i) => ({ ...t, originalIdx: i })));
+  currentIndex = 0;
+  responseCount = 0;
+  document.getElementById('view-toggle').style.display = 'flex';
+  showCard();
+}
+
+function showCard() {
+  if (currentIndex >= shuffledTopics.length) {
+    document.getElementById('view-toggle').style.display = 'none';
+    document.getElementById('resp-badge').classList.add('hidden');
+    showScreen('screen-finished');
+    return;
+  }
+
+  const topic = shuffledTopics[currentIndex];
+  simulatedResponses = [];
+  responseCount = 0;
+
+  document.getElementById('card-counter').textContent = `Tarjeta ${currentIndex + 1} de ${shuffledTopics.length}`;
+  document.getElementById('topic-emoji').textContent = topic.emoji;
+  document.getElementById('topic-title').textContent = topic.title;
+  document.getElementById('accent-bar').style.background = `linear-gradient(90deg, ${topic.color}, ${lighten(topic.color)})`;
+  document.getElementById('topic-card').style.borderTop = 'none';
+
+  // Mobile view
+  document.getElementById('mob-emoji').textContent = topic.emoji;
+  document.getElementById('mob-title').textContent = topic.title;
+  document.getElementById('mob-input').value = '';
+  document.getElementById('mob-send-btn').disabled = false;
+  document.getElementById('mob-send-btn').style.display = 'block';
+  document.getElementById('sent-msg').style.display = 'none';
+  document.getElementById('mob-timer-fill').style.width = '100%';
+
+  // Update resp badge
+  const badge = document.getElementById('resp-badge');
+  badge.classList.remove('hidden');
+  updateRespBadge(0);
+
+  // Generate QR — use Google Charts API, reliable and no install needed
+  const qrDiv = document.getElementById('qr-code');
+  qrDiv.innerHTML = '';
+  const canvas = document.createElement('canvas');
+  canvas.width = 90;
+  canvas.height = 90;
+  canvas.style.borderRadius = '8px';
+  qrDiv.appendChild(canvas);
+  drawQR(canvas, window.location.href, 90);
+
+  if (currentView === 'presenter') showScreen('screen-card');
+  else showScreen('screen-mobile');
+
+  startCardTimer();
+  simulateResponses();
+}
+
+function lighten(hex) {
+  // Simple lighten
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, (num >> 16) + 60);
+  const g = Math.min(255, ((num >> 8) & 0xFF) + 60);
+  const b = Math.min(255, (num & 0xFF) + 60);
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+function updateRespBadge(count) {
+  document.getElementById('resp-count-num').textContent = count;
+}
+
+function simulateResponses() {
+  const topic = shuffledTopics[currentIndex];
+  const pool = RESPONSE_POOLS[topic.originalIdx] || [];
+  const shuffledPool = shuffle(pool);
+  let i = 0;
+  const total = 8 + Math.floor(Math.random() * 5);
+
+  const addResp = () => {
+    if (i < Math.min(total, shuffledPool.length) && timerSeconds > 0) {
+      simulatedResponses.push(shuffledPool[i]);
+      responseCount++;
+      updateRespBadge(responseCount);
+      i++;
+      const delay = 800 + Math.random() * 1500;
+      setTimeout(addResp, delay);
+    }
+  };
+  setTimeout(addResp, 1000);
+}
+
+function startCardTimer() {
+  clearInterval(cardTimer);
+  timerSeconds = 15;
+  const arc = document.getElementById('timer-arc');
+  const num = document.getElementById('timer-num');
+  const circumference = 188.5;
+
+  const updateTimer = () => {
+    num.textContent = timerSeconds;
+    const offset = circumference * (1 - timerSeconds / 15);
+    arc.style.strokeDashoffset = offset;
+    const pct = timerSeconds / 15;
+    if (pct > 0.5) arc.style.stroke = '#06D6A0';
+    else if (pct > 0.25) arc.style.stroke = '#FFD166';
+    else arc.style.stroke = '#FF6B6B';
+
+    // mobile timer bar
+    document.getElementById('mob-timer-fill').style.width = (timerSeconds / 15 * 100) + '%';
+  };
+
+  updateTimer();
+  cardTimer = setInterval(() => {
+    timerSeconds--;
+    updateTimer();
+    if (timerSeconds <= 0) {
+      clearInterval(cardTimer);
+      showResults();
+    }
+  }, 1000);
+}
+
+function showResults() {
+  clearInterval(cardTimer);
+  const topic = shuffledTopics[currentIndex];
+
+  document.getElementById('res-emoji').textContent = topic.emoji;
+  document.getElementById('res-badge').textContent = topic.title;
+  document.getElementById('res-badge').style.background = topic.color;
+
+  // Build word cloud
+  const wc = document.getElementById('wordcloud');
+  wc.innerHTML = '';
+
+  // Count frequencies
+  const allResponses = [...simulatedResponses];
+  // If mobile submitted a response, it's already in simulatedResponses via submitMobileResponse
+  const freq = {};
+  allResponses.forEach(r => {
+    const key = r.toLowerCase().trim();
+    freq[key] = (freq[key] || 0) + 1;
+  });
+
+  const colors = [
+    { bg: '#FFF3CD', text: '#B8860B' },
+    { bg: '#FFE0E0', text: '#C0392B' },
+    { bg: '#E0F5E9', text: '#1E8449' },
+    { bg: '#E8F4FD', text: '#1A5276' },
+    { bg: '#F4ECF7', text: '#7D3C98' },
+    { bg: '#FEF9E7', text: '#9A7D0A' },
+    { bg: '#E8F8F5', text: '#1A7A64' },
+  ];
+
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+  const maxFreq = sorted[0]?.[1] || 1;
+
+  sorted.forEach(([word, count], i) => {
+    const tag = document.createElement('span');
+    tag.className = 'word-tag';
+    const size = 0.9 + (count / maxFreq) * 1.4;
+    const col = colors[i % colors.length];
+    tag.style.cssText = `
+      font-size: ${size}rem;
+      background: ${col.bg};
+      color: ${col.text};
+      animation-delay: ${i * 80}ms;
+      padding: ${8 + count * 2}px ${16 + count * 3}px;
+    `;
+    tag.textContent = count > 1 ? `${word} (${count})` : word;
+    wc.appendChild(tag);
+  });
+
+  if (sorted.length === 0) {
+    wc.innerHTML = '<p style="color:#ccc;font-size:1.1rem;font-weight:700">Nadie respondió aún 😅</p>';
+  }
+
+  showScreen('screen-results');
+  startDiscTimer();
+}
+
+function startDiscTimer() {
+  clearInterval(discTimer);
+  discSeconds = 90;
+
+  const updateDisc = () => {
+    const m = Math.floor(discSeconds / 60);
+    const s = discSeconds % 60;
+    document.getElementById('disc-timer-num').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    document.getElementById('disc-progress-fill').style.width = (discSeconds / 90 * 100) + '%';
+  };
+
+  updateDisc();
+  discTimer = setInterval(() => {
+    discSeconds--;
+    updateDisc();
+    if (discSeconds <= 0) clearInterval(discTimer);
+  }, 1000);
+}
+
+function nextCard() {
+  clearInterval(discTimer);
+  currentIndex++;
+  showCard();
+}
+
+function submitMobileResponse() {
+  const val = document.getElementById('mob-input').value.trim();
+  if (!val) return;
+  simulatedResponses.push(val);
+  responseCount++;
+  updateRespBadge(responseCount);
+  document.getElementById('mob-send-btn').disabled = true;
+  document.getElementById('mob-send-btn').style.display = 'none';
+  document.getElementById('sent-msg').style.display = 'block';
+}
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (view === 'presenter') {
+    // Check which screen should show
+    const resultsHidden = document.getElementById('screen-results').classList.contains('hidden');
+    const cardHidden = document.getElementById('screen-card').classList.contains('hidden');
+    if (!document.getElementById('screen-mobile').classList.contains('hidden')) {
+      showScreen('screen-card');
+    }
+  } else {
+    showScreen('screen-mobile');
+  }
+}
+
+function restartDynamic() {
+  document.getElementById('qr-code').innerHTML = '';
+  startDynamic();
+}
+</script>
+</body>
+</html>
